@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Expense Tracker</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f5f9;
+            margin: 0;
+            padding: 25px;
+            color: #222;
+        }
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+        h1 { text-align: center; color: #263b65; }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+        }
+        .card, .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px #00000012;
+        }
+        .card h3 { margin-top: 0; color: #555; }
+        .card p { font-size: 24px; font-weight: bold; }
+        .panel { margin-bottom: 20px; }
+        input, select, button {
+            width: 100%;
+            padding: 11px;
+            margin: 7px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        button {
+            background: #3159a5;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover { background: #23447f; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+        th { background: #eef2fa; }
+        .message { color: #16803c; }
+        .delete-button {
+            background: #c0392b;
+            padding: 7px;
+        }
+        @media(max-width: 650px) {
+            .cards { grid-template-columns: 1fr; }
+            body { padding: 12px; }
+            table { font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Personal Expense Tracker</h1>
+    <p style="text-align:center">Manage your income and expenses easily</p>
+
+    <div class="cards">
+        <div class="card">
+            <h3>Total Income</h3>
+            <p>₹{{ "%.2f"|format(income) }}</p>
+        </div>
+        <div class="card">
+            <h3>Total Expenses</h3>
+            <p>₹{{ "%.2f"|format(expenses) }}</p>
+        </div>
+        <div class="card">
+            <h3>Balance</h3>
+            <p>₹{{ "%.2f"|format(balance) }}</p>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Add Transaction</h2>
+
+        {% with messages = get_flashed_messages() %}
+            {% for message in messages %}
+                <p class="message">{{ message }}</p>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+            <input type="text" name="description"
+                   placeholder="Description (e.g. Groceries)" required>
+
+            <input type="text" name="category"
+                   placeholder="Category (e.g. Food)" required>
+
+            <select name="entry_type" required>
+                <option value="">Select Type</option>
+                <option value="Income">Income</option>
+                <option value="Expense">Expense</option>
+            </select>
+
+            <input type="number" name="amount"
+                   placeholder="Amount in ₹" min="0.01"
+                   step="0.01" required>
+
+            <input type="date" name="expense_date"
+                   value="{{ today }}" required>
+
+            <button type="submit">Add Transaction</button>
+        </form>
+    </div>
+
+    <div class="panel">
+        <h2>Transaction History</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in transactions %}
+                <tr>
+                    <td>{{ item.expense_date }}</td>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.category }}</td>
+                    <td>{{ item.entry_type }}</td>
+                    <td>₹{{ "%.2f"|format(item.amount) }}</td>
+                    <td>
+                        <form method="POST"
+                              action="{{ url_for('delete_transaction', transaction_id=item.id) }}">
+                            <button class="delete-button" type="submit">
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6">No transactions yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
+
